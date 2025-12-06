@@ -8,6 +8,12 @@ This project simulates the TCP Three-Way Handshake and TCP Connection Terminatio
 
 Since Python does not expose low-level TCP flags (SYN, ACK, FIN), this project imitates the entire TCP process using custom messages, allowing students to understand how TCP establishes and terminates connections.
 
+
+project members
+Balaji Tinety
+Charan Boinpally
+Rohan Goud Bairu
+
 🔥 Features
 ✅ Simulated TCP 3-Way Handshake
 
