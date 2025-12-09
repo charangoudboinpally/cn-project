@@ -1,4 +1,6 @@
 import socket
+import json
+import random
 
 HOST = "127.0.0.1"
 PORT = 6000
@@ -10,35 +12,37 @@ def main():
         client.connect((HOST, PORT))
         print(f"[CLIENT] Connected to server at {HOST}:{PORT}\n")
 
-        client.sendall("SYN".encode())
-        print("[CLIENT → SERVER] SYN")
+        # Pick random sequence number x
+        seq = random.randint(1000, 5000)
 
-        syn_ack = client.recv(1024).decode()
-        print("[SERVER → CLIENT]", syn_ack)
+        syn_packet = {
+            "SYN": 1,
+            "ACK": 0,
+            "SEQ": seq,
+            "ACK_NUM": 0,
+            "WINDOW": 1000,
+            "MSS": 200
+        }
 
-        if syn_ack == "SYN-ACK":
-            client.sendall("ACK".encode())
-            print("[CLIENT → SERVER] ACK")
-            print("\n[CLIENT] Connection Established!\n")
+        client.sendall(json.dumps(syn_packet).encode())
+        print("[CLIENT → SERVER] SENT SYN PACKET:", syn_packet)
 
-        msg = client.recv(1024).decode()
-        print("[SERVER → CLIENT]", msg)
+        # Receive SYN-ACK
+        syn_ack = json.loads(client.recv(1024).decode())
+        print("[SERVER → CLIENT] RECEIVED SYN-ACK:", syn_ack)
 
-        print("\n[CLIENT] Initiating connection termination...")
+        # ACK = 1, SEQ = x+1, ACK=y+1
+        ack_packet = {
+            "SYN": 0,
+            "ACK": 1,
+            "SEQ": seq + 1,
+            "ACK_NUM": syn_ack["SEQ"] + 1
+        }
 
-        client.sendall("FIN".encode())
-        print("[CLIENT → SERVER] FIN")
+        client.sendall(json.dumps(ack_packet).encode())
+        print("[CLIENT → SERVER] SENT ACK PACKET:", ack_packet)
 
-        ack = client.recv(1024).decode()
-        print("[SERVER → CLIENT]", ack)
-
-        fin2 = client.recv(1024).decode()
-        print("[SERVER → CLIENT]", fin2)
-
-        if fin2 == "FIN":
-            client.sendall("ACK".encode())
-            print("[CLIENT → SERVER] ACK")
-            print("\n[CLIENT] Connection closed successfully!")
+        print("\n[CLIENT] Connection Established!\n")
 
 if __name__ == "__main__":
     main()
